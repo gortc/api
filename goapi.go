@@ -155,6 +155,7 @@ func main() {
 		w := NewWalker(context, filepath.Join(build.Default.GOPATH, "src"))
 
 		for _, name := range pkgNames {
+			w.root = filepath.Join(build.Default.GOPATH, "src", name)
 			// Vendored packages do not contribute to our
 			// public API surface.
 			if strings.HasPrefix(name, "vendor/") {
@@ -444,9 +445,24 @@ func (w *Walker) Import(name string) (*types.Package, error) {
 	}
 
 	// Determine package files.
-	dir := filepath.Join(root, filepath.FromSlash(name))
-	if fi, err := os.Stat(dir); err != nil || !fi.IsDir() {
-		log.Fatalf("no source in tree for import %q: %v", name, err)
+
+	var (
+		dir      string
+		dirFound bool
+	)
+	for _, dir = range []string{
+		filepath.Join(w.root, "vendor", filepath.FromSlash(name)),
+		filepath.Join(root, filepath.FromSlash(name)),
+		filepath.Join(build.Default.GOPATH, "src", name),
+	} {
+		if fi, err := os.Stat(dir); err != nil || !fi.IsDir() {
+			continue
+		}
+		dirFound = true
+		break
+	}
+	if !dirFound {
+		log.Fatalf("no source in tree for import %q", name)
 	}
 
 	context := w.context
