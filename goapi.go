@@ -172,7 +172,6 @@ func main() {
 					continue
 				}
 				pkg, err := w.Import(name)
-				fmt.Println("imported", name)
 				if _, nogo := err.(*build.NoGoError); nogo {
 					continue
 				}
@@ -488,7 +487,6 @@ func (w *Walker) loadImports(paths []string, context *build.Context) {
 			log.Fatalf("%s: invalid output: %v", strings.Join(cmd.Args, " "), err)
 		}
 
-		fmt.Println("import path", pkg.Dir)
 		w.importDir[pkg.ImportPath] = pkg.Dir
 		w.importMap[pkg.Dir] = pkg.ImportMap
 	}
